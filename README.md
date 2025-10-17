@@ -1,41 +1,48 @@
-# Website
+# FeverTokens Documentation
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This repository hosts the FeverTokens product docs built with [Docusaurus](https://docusaurus.io/). The site is focused on guiding developers through the Fever CLI quickstart experience, which lives at the `/quickstart` route and mirrors the in-product onboarding flow.
 
-## Installation
+## Prerequisites
 
-```bash
-yarn
-```
+- Node.js `>=20`
+- npm `>=9`
 
-## Local Development
-
-```bash
-yarn start
-```
-
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
+## Install dependencies
 
 ```bash
-yarn build
+npm install
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-## Deployment
-
-Using SSH:
+## Run locally
 
 ```bash
-USE_SSH=true yarn deploy
+npm run start
 ```
 
-Not using SSH:
+The local dev server opens at `http://localhost:3000`. The homepage immediately redirects to the Quickstart introduction so you can validate the onboarding journey in the same way users will.
+
+## Build for production
 
 ```bash
-GIT_USER=<Your GitHub username> yarn deploy
+npm run build
 ```
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+Static assets are generated in the `build/` directory. To preview the production output locally run:
+
+```bash
+npm run serve
+```
+
+## Deploy
+
+```bash
+npm run deploy
+```
+
+Configure the usual Docusaurus environment variables (`USE_SSH`, `GIT_USER`, etc.) depending on how you publish the site.
+
+## Contributing to the docs
+
+- Quickstart guides live under `docs/quickstart/`. File names follow a numeric prefix so sidebar ordering stays intact.
+- The sidebar definition is in `sidebars.ts` and the navbar configuration in `docusaurus.config.ts`.
+- Use `npm run build` before opening a PR to catch broken links and frontmatter issues early.

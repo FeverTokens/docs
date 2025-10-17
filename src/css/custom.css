@@ -1,3 +1,4 @@
+/* stylelint-disable docusaurus/copyright-header */
 /**
  * Any CSS included here will be global. The classic template
  * bundles Infima by default. Infima is a CSS framework designed to
@@ -6,25 +7,40 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+	--ifm-color-primary: #ff0000;
+	--ifm-color-primary-dark: rgb(33, 175, 144);
+	--ifm-color-primary-darker: rgb(31, 165, 136);
+	--ifm-color-primary-darkest: rgb(26, 136, 112);
+	--ifm-color-primary-light: rgb(70, 203, 174);
+	--ifm-color-primary-lighter: rgb(102, 212, 189);
+	--ifm-color-primary-lightest: rgb(146, 224, 208);
+	--ifm-code-font-size: 95%;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+.docusaurus-highlight-code-line {
+	background-color: rgb(72, 77, 91);
+	display: block;
+	margin: 0 calc(-1 * var(--ifm-pre-padding));
+	padding: 0 var(--ifm-pre-padding);
+}
+
+.menu {
+	font-size: 0.9em;
+}
+
+.header-github-link::before {
+	content: "";
+	display: inline-block;
+	width: 24px;
+	height: 24px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 .297a12 12 0 0 0-3.793 23.406c.6.111.793-.258.793-.577 0-.285-.011-1.04-.016-2.04-3.226.7-3.905-1.555-3.905-1.555-.546-1.387-1.333-1.758-1.333-1.758-1.089-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.303.762-1.603-2.574-.293-5.285-1.287-5.285-5.732 0-1.266.469-2.3 1.236-3.112-.124-.302-.536-1.522.117-3.176 0 0 1.008-.322 3.301 1.23a11.5 11.5 0 0 1 6.004 0c2.292-1.552 3.297-1.23 3.297-1.23.655 1.654.243 2.874.119 3.176.77.812 1.235 1.846 1.235 3.112 0 4.457-2.716 5.435-5.303 5.722.43.372.823 1.102.823 2.222 0 1.604-.015 2.898-.015 3.293 0 .32.192.694.799.576A12.002 12.002 0 0 0 12 .297z'/%3E%3C/svg%3E")
+		no-repeat center/contain;
+}
+
+html[data-theme="dark"] .header-github-link::before {
+	filter: invert(1);
+}
+
+.header-github-link {
+	margin-left: 0.5rem;
 }
