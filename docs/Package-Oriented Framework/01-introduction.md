@@ -146,7 +146,7 @@ import {MyPackageInternal} from "./MyPackageInternal.sol";
 
 contract MyPackagePackage is IMyPackage, MyPackageInternal {
     function myFunction1(uint256 value1_) external override {
-    _myFunction1(value1_);
+        _myFunction1(value1_);
     }
 
     function myFunction2(address addr_, uint256 value2_) external override {
