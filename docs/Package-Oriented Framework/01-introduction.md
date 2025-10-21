@@ -140,7 +140,7 @@ abstract contract MyPackageInternal is IMyPackageInternal {
 
 Implements external interface and delegates to internal logic.
 
-```
+```solidity
 import {IMyPackage} from "./IMyPackage.sol";
 import {MyPackageInternal} from "./MyPackageInternal.sol";
 
