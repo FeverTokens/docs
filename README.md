@@ -1,6 +1,18 @@
 # FeverTokens Documentation
 
-This repository hosts the FeverTokens product docs built with [Docusaurus](https://docusaurus.io/). The site is focused on guiding developers through the Fever CLI quickstart experience, which lives at the `/quickstart` route and mirrors the in-product onboarding flow.
+This repository contains the FeverTokens documentation site built with [Docusaurus](https://docusaurus.io/). The published site highlights the Fever CLI manuals—covering installation, getting-started workflows, advanced guides, and troubleshooting—accessible from the `/cli` routes.
+
+## Documentation Structure
+
+The content in `docs/` is currently organized around the Fever CLI:
+
+- `docs/CLI/intro.md` introduces the CLI, highlights key features like declarative manifests and deterministic deployments, and clarifies who benefits from the tool.
+- `docs/CLI/installation.md` walks through npm-based installation, version requirements, verification commands, and common permission fixes.
+- `docs/CLI/getting-started.md` covers authenticating, selecting projects, compiling Solidity sources, and inspecting artifact status.
+- `docs/CLI/commands/index.md` provides an overview of available commands, with detailed pages such as `apply.md`, `compile.md`, `networks.md`, `node.md`, `projects.md`, `artifacts.md`, `auth.md`, `wallets.md`, and `install.md` under `docs/CLI/commands/`.
+- `docs/CLI/advanced-usage.md` explains advanced features including manifest structure, CREATE2 deployments, and Diamond application support.
+- `docs/CLI/configuration.md` documents environment variables, project network files, and global CLI settings.
+- `docs/CLI/troubleshooting.md` catalogues solutions for installation, authentication, compilation, deployment, and artifact sync issues.
 
 ## Prerequisites
 
@@ -19,7 +31,7 @@ npm install
 npm run start
 ```
 
-The local dev server opens at `http://localhost:3000`. The homepage immediately redirects to the Quickstart introduction so you can validate the onboarding journey in the same way users will.
+The local dev server opens at `http://localhost:3000`. The homepage immediately redirects to the CLI introduction (`/cli/intro`) so you can validate the onboarding journey in the same way users will.
 
 ## Build for production
 
@@ -43,6 +55,10 @@ Configure the usual Docusaurus environment variables (`USE_SSH`, `GIT_USER`, etc
 
 ## Contributing to the docs
 
-- Quickstart guides live under `docs/quickstart/`. File names follow a numeric prefix so sidebar ordering stays intact.
+- CLI guides live under `docs/CLI/`, with subdirectories (like `commands/`) matching the sidebar grouping.
 - The sidebar definition is in `sidebars.ts` and the navbar configuration in `docusaurus.config.ts`.
 - Use `npm run build` before opening a PR to catch broken links and frontmatter issues early.
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
