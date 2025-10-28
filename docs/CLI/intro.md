@@ -22,7 +22,7 @@ Whether you are deploying a simple ERC20 token or a complex, multi-faceted Diamo
 - **Advanced Diamond Pattern Support**: First-class support for EIP-2535 Diamond Standard, including automated facet management, upgrades, and precise function selector control.
 - **Deterministic CREATE2 Deployments**: Deploy contracts to the same address across multiple chains, enabled by default. Predict contract addresses before you even deploy.
 - **Smart Artifact Management**: Intelligently syncs only changed contract artifacts with the Fever platform, saving 70-90% on bandwidth and time. Git-like `status` and `diff` commands provide full visibility.
-- **Integrated Local Development**: Spin up a local Anvil or Ganache node instantly with `fever node`, including forking capabilities for realistic mainnet testing.
+- **Integrated Local Development**: Spin up a local (Anvil) node instantly with `fever node`, including forking capabilities for realistic mainnet testing.
 - **Comprehensive Network Management**: Easily add, remove, and switch between popular public networks or your own custom RPC endpoints.
 - **Automated Dependency Handling**: The `fever install` command auto-detects your project's package manager (npm, yarn, pnpm, bun) and installs dependencies correctly every time.
 - **Secure Authentication**: A secure, device-based authentication flow connects the CLI to your Fever developer account for project management and deployment tracking.
