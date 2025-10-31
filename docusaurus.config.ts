@@ -1,6 +1,8 @@
 import path from "node:path";
 import type {Config} from "@docusaurus/types";
 
+const EDIT_URL_BASE = "https://github.com/FeverTokens/docs/edit/main";
+
 const config: Config = {
 	title: "Fever CLI documentation",
 	tagline: "Guides to using Fevertokens",
@@ -16,23 +18,12 @@ const config: Config = {
 			respectPrefersColorScheme: false,
 		},
 		navbar: {
-			// title: 'Guides',
 			logo: {
 				alt: "FeverTokens Logo",
 				src: "img/logo.svg",
 				href: "https://www.fevertokens.io/",
 			},
 			items: [
-				{
-					type: "docsVersionDropdown",
-					position: "right",
-					dropdownActiveClassDisabled: true,
-					versions: {
-						current: {
-							label: "Latest",
-						},
-					},
-				},
 				{
 					href: "https://github.com/FeverTokens",
 					position: "right",
@@ -105,24 +96,29 @@ const config: Config = {
 		[
 			"@docusaurus/preset-classic",
 			{
-				docs: {
-					routeBasePath: "/",
-					sidebarPath: path.resolve(__dirname, "./sidebars.ts"),
-					sidebarCollapsible: true,
-					sidebarCollapsed: false,
-					// Please change this to your repo.
-					editUrl:
-						"https://github.com/facebook/docusaurus/edit/master/website/",
-				},
+				docs: false,
 				blog: {
 					showReadingTime: true,
 					// Please change this to your repo.
-					editUrl:
-						"https://github.com/facebook/docusaurus/edit/master/website/blog/",
+					editUrl: "https://github.com/FeverTokens/docs/edit/main/blog/",
 				},
 				theme: {
 					customCss: path.resolve(__dirname, "./src/css/custom.css"),
 				},
+			},
+		],
+	],
+	plugins: [
+		[
+			"@docusaurus/plugin-content-docs",
+			{
+				id: "default",
+				path: "docs",
+				routeBasePath: "/",
+				sidebarPath: path.resolve(__dirname, "./sidebars.ts"),
+				sidebarCollapsible: true,
+				sidebarCollapsed: false,
+				editUrl: ({docPath}: {docPath: string}) => `${EDIT_URL_BASE}/docs/${docPath}`,
 			},
 		],
 	],
