@@ -6,7 +6,7 @@ const EDIT_URL_BASE = "https://github.com/FeverTokens/docs/edit/main";
 const config: Config = {
 	title: "Fever CLI documentation",
 	tagline: "Guides to using Fevertokens",
-	url: "https://docs.fevertokens.io",
+	url: "https://docs.fevertokens.app",
 	baseUrl: "/",
 	favicon: "img/favicon.ico",
 	organizationName: "FeverTokens", // Usually your GitHub org/user name.
@@ -97,11 +97,7 @@ const config: Config = {
 			"@docusaurus/preset-classic",
 			{
 				docs: false,
-				blog: {
-					showReadingTime: true,
-					// Please change this to your repo.
-					editUrl: "https://github.com/FeverTokens/docs/edit/main/blog/",
-				},
+				blog: false,
 				theme: {
 					customCss: path.resolve(__dirname, "./src/css/custom.css"),
 				},
@@ -118,7 +114,23 @@ const config: Config = {
 				sidebarPath: path.resolve(__dirname, "./sidebars.ts"),
 				sidebarCollapsible: true,
 				sidebarCollapsed: false,
-				editUrl: ({docPath}: {docPath: string}) => `${EDIT_URL_BASE}/docs/${docPath}`,
+				editUrl: ({docPath}: {docPath: string}) =>
+					`${EDIT_URL_BASE}/docs/${docPath}`,
+			},
+		],
+		[
+			"@signalwire/docusaurus-plugin-llms-txt",
+			{
+				siteTitle: "Fever CLI documentation",
+				siteDescription: "Guides to using Fevertokens",
+				depth: 2,
+				content: {
+					includeBlog: false,
+					includePages: true,
+					relativePaths: false,
+					enableMarkdownFiles: false,
+					enableLlmsFullTxt: true, // Optional: generates llms-full.txt
+				},
 			},
 		],
 	],
