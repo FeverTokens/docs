@@ -173,7 +173,7 @@ By the end of this tutorial:
 
 ## Prerequisites
 
-- Node.js v20.19 or higher
+- Node.js v20.x or higher
 - Git installed
 - A GitHub or Google account (for platform authentication)
 
@@ -306,7 +306,7 @@ spec:
   deployer:
     wallet:
       type: privateKey
-      value: '${PRIVATE_KEY}'
+      value: ${PRIVATE_KEY}
 ```
 
 **Key features:**
@@ -365,7 +365,7 @@ spec:
   deployer:
     wallet:
       type: privateKey
-      value: '${PRIVATE_KEY}'
+      value: ${PRIVATE_KEY}
 ```
 
 **This single manifest**:
@@ -491,7 +491,6 @@ When prompted, select **Yes** to append to your `.env` file.
 ```bash
 cat > .env << 'EOF'
 PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-DEPLOY_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 ADMIN_ADDRESS=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 EOF
 ```
@@ -599,7 +598,7 @@ await system.packageCut([
 With Fever CLI, deploy all 7 contracts with **one command**:
 
 ```bash
-fever apply -f microloan-system-config.yaml
+fever apply -f f9s/microloan-package-system.yaml
 ```
 
 **What Fever does:**
@@ -675,7 +674,7 @@ Let's deploy a **complete 7-contract system** to see the Package Framework in ac
 
 ### Step 1: Review the Manifest
 
-The manifest `f9s/microloan-system-config.yaml` defines the entire system. It automatically:
+The manifest `f9s/microloan-package-system.yaml` defines the entire system. It automatically:
 
 - Deploys packages (LoanRegistry, LoanFunding, etc.)
 - Deploys dependencies (PackageViewer, PackageController) first
@@ -695,7 +694,7 @@ ADMIN_ADDRESS=${DEPLOY_ADDRESS}
 Now deploy the entire system:
 
 ```bash
-fever apply -f f9s/microloan-system-config.yaml
+fever apply -f f9s/microloan-package-system.yaml
 ```
 
 ### Step 3: Watch the Magic
@@ -793,7 +792,7 @@ Error rate: High
 ```bash
 # Write manifest once (15 minutes)
 # Deploy everywhere with one command
-fever apply -f microloan-system-config.yaml
+fever apply -f f9s/microloan-package-system.yaml
 
 # Everything tracked automatically on platform
 # All contracts linked and documented
