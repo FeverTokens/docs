@@ -1,7 +1,7 @@
 ---
 id: packages-guidelines
-title: Packages Guidelines
-sidebar_label: Packages Guidelines
+title: Guidelines
+sidebar_label: Guidelines
 sidebar_position: 5
 slug: /packages/guidelines
 ---
@@ -120,6 +120,7 @@ struct MyStruct2 {
 interface IMyPackageInternal {
   event MyEvent1(address indexed sender, uint256 value);
   event MyEvent2(address indexed actor, bool action);
+  error Unauthorized();
 }
 ```
 
@@ -145,7 +146,7 @@ interface IMyPackage is IMyPackageInternal {
 Encapsulates the state in a `Layout` struct and MUST declare an [ERC-7201](https://eips.ethereum.org/EIPS/eip-7201) storage slot using the package namespace `erc7201:fevertokens.storage.MyPackage` (replace `MyPackage` with your package name). Precompute the slot constant offline to avoid on-chain hashing.
 
 ```solidity
-import './IMyPackageInternal.sol';
+import {MyStruct1} from './IMyPackageInternal.sol';
 
 library MyPackageStorage {
   struct Layout {
@@ -215,21 +216,21 @@ abstract contract MyPackageInternal is IMyPackageInternal, SharedInternal {
   // ✅ Modifiers accessing storage via layout()
   modifier onlyAdmin() {
     MyPackageStorage.Layout storage l = MyPackageStorage.layout();
-    if (msg.sender != l.admin) revert Unauthorized();
+    if (msg.sender != l.addr1) revert Unauthorized();
     _;
   }
 
   // ✅ Internal functions with _ prefix
-  function _myFunction1(uint256 value1) internal onlyAdmin MyModifier {
+  function _myFunction1(uint256 value1_) internal onlyAdmin MyModifier {
     MyPackageStorage.Layout storage l = MyPackageStorage.layout();
-    l.value1 = value1;
-    emit MyEvent1(msg.sender, value1);
+    l.value1 = value1_;
+    emit MyEvent1(msg.sender, value1_);
   }
 
-  function _myFunction2(address addr, uint256 value2) internal {
+  function _myFunction2(address addr_, uint256 value2_) internal {
     MyPackageStorage.Layout storage l = MyPackageStorage.layout();
-    l.addr1 = addr;
-    l.value2 = value2;
+    l.addr1 = addr_;
+    l.value2 = value2_;
   }
 }
 ```
@@ -274,7 +275,7 @@ Always access state through the storage layout:
 ```solidity
 function _updateAdmin(address newAdmin) internal {
   MyPackageStorage.Layout storage l = MyPackageStorage.layout();
-  l.admin = newAdmin; // ✅ CORRECT
+  l.addr1 = newAdmin; // ✅ CORRECT
 }
 ```
 
