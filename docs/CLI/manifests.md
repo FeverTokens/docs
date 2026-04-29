@@ -488,6 +488,116 @@ const def     = findNetwork(manifest, {})  // uses defaultNetwork
 
 ---
 
+## YAML **or** JSON
+
+Every manifest in this document is shown as YAML, but Fever CLI also accepts
+the equivalent **JSON** file. The loader uses `@std/yaml` which implements
+YAML 1.2, and YAML 1.2 is a strict superset of JSON — so a `.json` file
+parses to the exact same `manifest.spec` as its `.yaml` counterpart.
+
+Which one you pick is a style decision:
+
+- **YAML** is friendlier for hand-editing (comments, trailing-comma tolerant,
+  less syntactic noise). Most examples in this doc and all `f9s/*.yml` files
+  in the microloan repo use YAML.
+- **JSON** is friendlier for tools (emitted by generators, validated by
+  many editors out-of-the-box, strict-by-construction). The microloan repo
+  ships `f9s/erc20-config.json` alongside `f9s/erc20-config.yaml` as a
+  reference of what a JSON manifest looks like.
+
+Both are first-class: validated against the same JSON Schemas, routed through
+the same version-specific handler, and produce identical deployments.
+
+```bash
+# All of these work identically:
+fever validate f9s/microloan-package-system.yaml
+fever validate f9s/erc20-config.yaml
+fever validate f9s/erc20-config.json
+
+fever apply -f manifest.yaml --dry-run
+fever apply -f manifest.json --dry-run
+```
+
+---
+
+## Validating a manifest
+
+Two ways to validate a manifest without deploying:
+
+### `fever validate <file>` — dedicated validation command
+
+```bash
+$ fever validate f9s/microloan-package-system.yaml
+✓ f9s/microloan-package-system.yaml — PackageSystem (beta/v1, yaml)
+    ! Unresolved placeholder in spec.deployer.wallet.value: ${PRIVATE_KEY}
+```
+
+Options:
+
+| Flag | Description |
+| :--- | :--- |
+| `--json` | Emit a machine-readable JSON report on stdout. Ideal for CI and editor integrations. |
+| `--plan` | Additionally print the resolved deployment plan (env vars + synthetic dependency addresses). |
+
+**JSON report shape** (for `--json`):
+
+```json
+{
+  "file": "f9s/microloan-package-system.yaml",
+  "format": "yaml",
+  "ok": true,
+  "kind": "PackageSystem",
+  "apiVersion": "beta/v1",
+  "name": "microloan-application",
+  "errors": [],
+  "warnings": [
+    "Unresolved placeholder in spec.deployer.wallet.value: ${PRIVATE_KEY}"
+  ],
+  "resolved": {
+    "constructorArgs": [
+      "0x0000000000000000000000000000000000000002",
+      "0x0000000000000000000000000000000000000001",
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    ],
+    "dependencies": {
+      "packageController": "0x0000000000000000000000000000000000000002",
+      "packageViewer": "0x0000000000000000000000000000000000000001"
+    }
+  }
+}
+```
+
+Exit codes: `0` on success, `1` on validation failure, `2` on argument errors
+(missing file, unknown path, etc.). `validate` works on **every** manifest
+kind — including `Network`, which `apply` refuses.
+
+### `fever apply -f <file> --dry-run` — validate + preview deployment plan
+
+Does everything `validate --plan` does, plus formats the output as a full
+"Kubernetes-style" deployment preview. Prefer this when you want a
+human-friendly walkthrough of what *would* be deployed.
+
+### Programmatic validation
+
+```ts
+import {
+  loadAndValidateManifest,
+  loadAndValidateNetworkManifest,
+} from '@fevertokens/core/manifests/parsers.ts'
+
+// Works for YAML and JSON alike.
+const result = await loadAndValidateManifest('path/to/manifest.yaml')
+if (!result) throw new Error('file not found')
+if (!result.validation.valid) {
+  for (const err of result.validation.errors) console.error(err)
+  throw new Error('invalid manifest')
+}
+// `result.manifest` is a typed DeploymentManifest, `result.handler` is the
+// version-specific handler you can use to resolve constructorArgs, etc.
+```
+
+---
+
 ## Common Manifest Patterns
 
 ### Environment Variables & Templating
