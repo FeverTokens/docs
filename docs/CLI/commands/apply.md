@@ -22,11 +22,20 @@ fever apply -f <manifest-file> [options]
 | Option | Description |
 | :--- | :--- |
 | `-f`, `--file <file>` | **(Required)** Path to the YAML manifest file. |
+| `--dry-run` | Validate the manifest, resolve every `${ENV}` / `$dependencies.*` placeholder with synthetic addresses, and print the resolved plan. **No RPC, no private key, no transactions.** Exits non-zero if the manifest is invalid. |
 | `--chainId <id>` | Specify a network by its chain ID, overriding the manifest and default settings. |
 | `--chainName <name>` | Specify a network by its name (from `f9s/networks.yml`), overriding the manifest. |
 | `-y`, `--yes` | Skip the interactive deployment preview and confirmation prompt. |
 | `-r`, `--redeploy` | Force a redeployment of the main system/contract and its packages, but **keeps existing dependencies**. |
 | `--ra`, `--redeploy-all` | Force a complete redeployment of **everything**, including all dependencies. |
+| `--skip-sync` | Skip syncing the deployment record to the Fever web platform. |
+
+:::tip CI-friendly dry run
+`fever apply -f manifest.yaml --dry-run` needs no secrets and no chain. Wire it
+into your CI / pre-commit hooks to catch broken manifests, missing environment
+variables, and stale dependency references **before** anything touches the
+network.
+:::
 
 ## The Manifest File
 
@@ -113,6 +122,77 @@ fever apply -f manifest.yaml --redeploy-all
 - Forces a fresh deployment of **all dependencies** and the **main contract**.
 - Ignores all existing deployment records.
 - Useful for starting from scratch on a testnet or in a local development environment.
+
+## Dry-Run Mode
+
+`fever apply --dry-run` runs the entire manifest validation + resolution pipeline
+**without** touching the chain. It is the Kubernetes-style
+`kubectl apply --dry-run=client` for smart contracts.
+
+What it does:
+
+1. **Loads** the manifest and runs it through the full JSON-Schema validation.
+2. **Resolves** every `${ENV}` / `${env:VAR:-default}` / `${file:PATH}` placeholder.
+3. **Synthesises** deterministic placeholder addresses for every declared dependency
+   and resolves every `$dependencies.<key>.address` reference against them.
+4. **Prints** the resolved plan: system name, raw → resolved constructor args,
+   packages with `[deploy]` or `[reuse 0x…]` tags, selector counts, synthetic
+   dependency addresses.
+5. **Exits `0`** if everything is valid, non-zero otherwise.
+
+What it does **not** need:
+
+- No `PRIVATE_KEY` / no signer.
+- No `RPC_URL` / no chain.
+- No compiled artifacts for the target (beyond what the schema requires).
+
+### Example
+
+```bash
+$ fever apply -f f9s/microloan-package-system.yaml --dry-run
+🧪 fever apply --dry-run
+   manifest: f9s/microloan-package-system.yaml
+
+✓ Manifest parsed and validated
+  Name: microloan-application
+  Kind: PackageSystem
+  API Version: beta/v1
+
+📋 Resolved plan
+  ────────────────────────────────────
+  Diamond System:
+    • MicroLoanPackageSystem
+  Constructor args (raw → resolved):
+    1. $dependencies.packageController.address  →  0x0000…000002
+    2. $dependencies.packageViewer.address       →  0x0000…000001
+    3. ${ADMIN_ADDRESS}                          →  0xf39F…9242Eb8F
+  Packages:
+    • LoanRegistry  [reuse 0xB7f8…84F5e]
+    • LoanFunding (all) [deploy]
+    • LoanRepayment (1 selector) [deploy]
+    • LoanTokenManager (3 selectors) [deploy]
+  Dependencies (synthetic in dry-run):
+    • packageController → 0x0000…000002
+    • packageViewer     → 0x0000…000001
+
+✅ Dry-run successful — no transactions were sent.
+```
+
+:::tip Use in CI
+```yaml
+# .github/workflows/manifests.yml
+- run: fever apply -f f9s/app.yaml --dry-run
+  env:
+    ADMIN_ADDRESS: ${{ vars.ADMIN_ADDRESS }}
+```
+:::
+
+### Dry-run on a Network manifest
+
+`fever apply -f f9s/networks.yml --dry-run` succeeds and reports
+*"Network manifest is valid — not deployable"*. Running without `--dry-run`
+ against a Network manifest **exits non-zero**: Network manifests describe
+available chains, not deployments.
 
 ## Examples
 
