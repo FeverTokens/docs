@@ -18,15 +18,16 @@ One command deploys everything:
 fever apply -f manifest.yaml
 ```
 
-## The Three Manifest Types
+## The Four Manifest Types
 
-Fever CLI supports three deployment patterns, each optimized for different use cases:
+Fever CLI supports four manifest kinds under the `beta/v1` API version:
 
-| Type | Use Case | Contracts Deployed | Upgradeable | Size Limit |
-|------|----------|-------------------|-------------|------------|
-| **`Contract`** | Single standalone contracts | 1 main + optional deps | ❌ No | 24KB per contract |
-| **`Package`** | Individual POF components | 1 package + optional deps | ❌ No | 24KB per package |
-| **`PackageSystem`** | Complex modular systems | 1 system + N packages | ✅ Yes | ♾️ Unlimited |
+| Type | Use Case | Deployable? | Upgradeable | Size Limit |
+|------|----------|-------------|-------------|------------|
+| **`Contract`** | Single standalone contracts | ✅ Yes | ❌ No | 24KB per contract |
+| **`Package`** | Individual POF components | ✅ Yes | ❌ No | 24KB per package |
+| **`PackageSystem`** | Complex modular systems | ✅ Yes | ✅ Yes | ♾️ Unlimited |
+| **`Network`** | Available chains (`f9s/networks.yml`) | ❌ No (config) | n/a | n/a |
 
 :::tip Quick Decision Guide
 - **Building an ERC20, NFT, or simple contract?** → Use `Contract`
@@ -34,6 +35,7 @@ Fever CLI supports three deployment patterns, each optimized for different use c
 - **Building a complex system with 3+ contracts?** → Use `PackageSystem`
 - **Need to bypass the 24KB size limit?** → Use `PackageSystem`
 - **Need upgradeable contracts?** → Use `PackageSystem`
+- **Describing which chains your project can deploy to?** → Use `Network`
 :::
 
 ---
@@ -406,11 +408,223 @@ spec:
 
 ---
 
+## Network Manifests
+
+### When to Use `kind: Network`
+
+Unlike the three deployment kinds, `Network` manifests are **configuration**, not
+deployments. They enumerate the chains your project can target. The canonical
+location is `f9s/networks.yml` at the project root.
+
+`fever apply -f f9s/networks.yml` will **refuse to deploy** — this is by
+design. Use `fever networks` to manage Network manifests, or pass
+`--chainId` / `--chainName` to `fever apply` on a deployable manifest to
+pick a chain from the Network manifest.
+
+### Basic Example
+
+```yaml
+apiVersion: beta/v1
+kind: Network
+defaultNetwork: 1337
+networks:
+  - chainId: 1337
+    name: Localhost
+    symbol: ETH
+    type: local
+    rpcUrl: http://localhost:8545
+
+  - chainId: 11155111
+    name: Ethereum Sepolia
+    symbol: ETH
+    type: testnet
+    rpcUrl: https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}
+    rpcUrls:
+      - https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}
+      - https://sepolia.gateway.tenderly.co
+    blockExplorerUrl: https://sepolia.etherscan.io
+
+  - chainId: 1
+    name: Ethereum Mainnet
+    symbol: ETH
+    type: mainnet
+    rpcUrl: ${env:ETH_RPC_URL:-https://eth.llamarpc.com}
+    blockExplorerUrl: https://etherscan.io
+```
+
+### Fields
+
+| Field | Required | Description |
+| :--- | :--- | :--- |
+| `apiVersion` | ✅ | Must be `beta/v1`. |
+| `kind` | ✅ | Must be `Network`. |
+| `defaultNetwork` | optional | `chainId` to use when none is specified on the CLI. |
+| `networks[].chainId` | ✅ | EVM chain ID. |
+| `networks[].name` | ✅ | Human-readable network name. |
+| `networks[].rpcUrl` | ✅ | Primary RPC endpoint (supports `${ENV}` / `${file:}`). |
+| `networks[].type` | optional | `mainnet` / `testnet` / `local` / `custom`. |
+| `networks[].symbol` | optional | Native currency symbol (`ETH`, `MATIC`, `CELO`…). |
+| `networks[].rpcUrls` | optional | Fallback RPC endpoints. |
+| `networks[].blockExplorerUrl` | optional | Explorer URL for the network. |
+
+### Programmatic access
+
+The SDK exposes helpers for loading + looking up networks:
+
+```ts
+import {
+  loadAndValidateNetworkManifest,
+  findNetwork,
+} from '@fevertokens/core/manifests/parsers.ts'
+
+const { manifest } = (await loadAndValidateNetworkManifest(
+  'f9s/networks.yml',
+))!
+
+const sepolia = findNetwork(manifest, { chainName: 'Ethereum Sepolia' })
+const local   = findNetwork(manifest, { chainId: 1337 })
+const def     = findNetwork(manifest, {})  // uses defaultNetwork
+```
+
+---
+
+## YAML **or** JSON
+
+Every manifest in this document is shown as YAML, but Fever CLI also accepts
+the equivalent **JSON** file. The loader uses `@std/yaml` which implements
+YAML 1.2, and YAML 1.2 is a strict superset of JSON — so a `.json` file
+parses to the exact same `manifest.spec` as its `.yaml` counterpart.
+
+Which one you pick is a style decision:
+
+- **YAML** is friendlier for hand-editing (comments, trailing-comma tolerant,
+  less syntactic noise). Most examples in this doc and all `f9s/*.yml` files
+  in the microloan repo use YAML.
+- **JSON** is friendlier for tools (emitted by generators, validated by
+  many editors out-of-the-box, strict-by-construction). The microloan repo
+  ships `f9s/erc20-config.json` alongside `f9s/erc20-config.yaml` as a
+  reference of what a JSON manifest looks like.
+
+Both are first-class: validated against the same JSON Schemas, routed through
+the same version-specific handler, and produce identical deployments.
+
+```bash
+# All of these work identically:
+fever validate f9s/microloan-package-system.yaml
+fever validate f9s/erc20-config.yaml
+fever validate f9s/erc20-config.json
+
+fever apply -f manifest.yaml --dry-run
+fever apply -f manifest.json --dry-run
+```
+
+---
+
+## Validating a manifest
+
+Two ways to validate a manifest without deploying:
+
+### `fever validate <file>` — dedicated validation command
+
+```bash
+$ fever validate f9s/microloan-package-system.yaml
+✓ f9s/microloan-package-system.yaml — PackageSystem (beta/v1, yaml)
+    ! Unresolved placeholder in spec.deployer.wallet.value: ${PRIVATE_KEY}
+```
+
+Options:
+
+| Flag | Description |
+| :--- | :--- |
+| `--json` | Emit a machine-readable JSON report on stdout. Ideal for CI and editor integrations. |
+| `--plan` | Additionally print the resolved deployment plan (env vars + synthetic dependency addresses). |
+
+**JSON report shape** (for `--json`):
+
+```json
+{
+  "file": "f9s/microloan-package-system.yaml",
+  "format": "yaml",
+  "ok": true,
+  "kind": "PackageSystem",
+  "apiVersion": "beta/v1",
+  "name": "microloan-application",
+  "errors": [],
+  "warnings": [
+    "Unresolved placeholder in spec.deployer.wallet.value: ${PRIVATE_KEY}"
+  ],
+  "resolved": {
+    "constructorArgs": [
+      "0x0000000000000000000000000000000000000002",
+      "0x0000000000000000000000000000000000000001",
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    ],
+    "dependencies": {
+      "packageController": "0x0000000000000000000000000000000000000002",
+      "packageViewer": "0x0000000000000000000000000000000000000001"
+    }
+  }
+}
+```
+
+Exit codes: `0` on success, `1` on validation failure, `2` on argument errors
+(missing file, unknown path, etc.). `validate` works on **every** manifest
+kind — including `Network`, which `apply` refuses.
+
+### `fever apply -f <file> --dry-run` — validate + preview deployment plan
+
+Does everything `validate --plan` does, plus formats the output as a full
+"Kubernetes-style" deployment preview. Prefer this when you want a
+human-friendly walkthrough of what *would* be deployed.
+
+### Programmatic validation
+
+```ts
+import {
+  loadAndValidateManifest,
+  loadAndValidateNetworkManifest,
+} from '@fevertokens/core/manifests/parsers.ts'
+
+// Works for YAML and JSON alike.
+const result = await loadAndValidateManifest('path/to/manifest.yaml')
+if (!result) throw new Error('file not found')
+if (!result.validation.valid) {
+  for (const err of result.validation.errors) console.error(err)
+  throw new Error('invalid manifest')
+}
+// `result.manifest` is a typed DeploymentManifest, `result.handler` is the
+// version-specific handler you can use to resolve constructorArgs, etc.
+```
+
+---
+
 ## Common Manifest Patterns
 
-### Environment Variables
+### Environment Variables & Templating
 
-Use environment variables for sensitive data:
+Manifests support a small but powerful set of `${...}` placeholders. Every
+field in `spec.*` — including `constructorArgs`, `rpcUrl`, `wallet.value` —
+goes through the resolver before deployment.
+
+| Form | Meaning |
+| :--- | :--- |
+| `${VAR}` | Substitute the env var `VAR`. Warns + keeps literal if unset. |
+| `${VAR:-default}` | Substitute `VAR` if set, else `default`. |
+| `${env:VAR}` | Explicit env source (equivalent to `${VAR}`). |
+| `${env:VAR:-default}` | Explicit env + default. |
+| `${file:PATH}` | Read the file at `PATH` and trim the trailing newline. |
+| `${file:PATH:-default}` | Read the file, else use `default` if the file is missing. |
+
+Dependency references (new attributes in **beta/v1**):
+
+| Form | Meaning |
+| :--- | :--- |
+| `$dependencies.<key>.address` | Deployed contract address (legacy, most common). |
+| `$dependencies.<key>.chainId` | Chain the dependency was deployed on. |
+| `$dependencies.<key>.txHash` | Deployment transaction hash. |
+| `$dependencies.<key>.abi` | Serialized ABI as a JSON string. |
+
+Examples:
 
 **`.env` file:**
 ```env
@@ -425,13 +639,19 @@ ORACLE_ADDRESS=0x1234567890123456789012345678901234567890
 spec:
   contract:
     constructorArgs:
-      - value: ${ADMIN_ADDRESS}      # ← From .env
-      - value: ${ORACLE_ADDRESS}     # ← From .env
-
+      - value: ${ADMIN_ADDRESS}                    # legacy env
+      - value: ${env:ORACLE_ADDRESS:-0x0}          # env + default
+      - value: ${file:./secrets/api-key.txt}       # file source
+      - value: $dependencies.registry.address      # dep address
   deployer:
     wallet:
-      value: ${PRIVATE_KEY}          # ← From .env
+      value: ${PRIVATE_KEY}
 ```
+
+:::tip Validate without deploying
+Run `fever apply -f manifest.yaml --dry-run` to see the raw → resolved plan
+for every placeholder, with no RPC and no private key required.
+:::
 
 ### Dependency Injection
 
@@ -513,7 +733,7 @@ spec:
       enabled: false  # Use traditional CREATE
 ```
 
-📚 **Learn more:** See README.md section on CREATE2
+📚 **Learn more:** See [CREATE2 Deterministic Deployments](./advanced-usage.md#create2-deterministic-deployments)
 
 ---
 

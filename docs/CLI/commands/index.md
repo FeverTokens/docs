@@ -24,6 +24,7 @@ Here is a high-level overview of the available commands. Click on any command to
 | [`networks`](/cli/commands/networks)   | Manage blockchain network configurations for your project.                  |
 | [`node`](/cli/commands/node)           | Start a local blockchain node (Anvil) for development.                      |
 | [`projects`](/cli/commands/projects)   | Manage your projects on the Fever platform (list, select, create).          |
+| [`validate`](/cli/commands/validate)   | Validate a deployment manifest (YAML or JSON) without deploying.            |
 | [`wallets`](/cli/commands/wallets)     | Generate new Ethereum wallets for development and testing.                  |
 | `version`                              | Display the current version of the Fever CLI.                               |
 
