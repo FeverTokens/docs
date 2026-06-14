@@ -733,7 +733,7 @@ spec:
       enabled: false  # Use traditional CREATE
 ```
 
-📚 **Learn more:** See README.md section on CREATE2
+📚 **Learn more:** See [CREATE2 Deterministic Deployments](./advanced-usage.md#create2-deterministic-deployments)
 
 ---
 
