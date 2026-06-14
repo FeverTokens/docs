@@ -2,7 +2,7 @@
 id: advanced-usage
 title: Advanced Usage
 sidebar_label: Advanced Usage
-sidebar_position: 5
+sidebar_position: 6
 slug: /cli/advanced-usage
 ---
 

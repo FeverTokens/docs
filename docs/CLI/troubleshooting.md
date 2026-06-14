@@ -2,7 +2,7 @@
 id: troubleshooting
 title: Troubleshooting
 sidebar_label: Troubleshooting
-sidebar_position: 7
+sidebar_position: 8
 slug: /cli/troubleshooting
 ---
 
